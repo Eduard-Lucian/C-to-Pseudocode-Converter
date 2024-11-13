@@ -1,0 +1,169 @@
+// DataCalendaristica.h
+#ifndef DATA_CALENDARISTICA_H
+#define DATA_CALENDARISTICA_H
+
+#include <string>
+
+class DataCalendaristica {
+private:
+    int zi;
+    int luna;
+    int an;
+
+    bool esteAnBisect(int an) const;
+    int zileInLuna(int luna, int an) const;
+
+public:
+    DataCalendaristica();
+    DataCalendaristica(const std::string& data);
+    DataCalendaristica(int numarZi, int anCurent);
+
+    bool esteValida() const;
+
+    void setZi(int ziNoua);
+    void setLuna(int lunaNoua);
+    void setAn(int anNou);
+
+    int getZi() const;
+    int getLuna() const;
+    int getAn() const;
+
+    void afiseazaData() const;
+    int numarZiInAn() const;
+};
+
+#endif // DATA_CALENDARISTICA_H
+
+
+
+
+
+// DataCalendaristica.cpp
+#include "DataCalendaristica.h"
+#include <iostream>
+#include <stdexcept>
+
+DataCalendaristica::DataCalendaristica() : zi(1), luna(1), an(2000) {}
+
+DataCalendaristica::DataCalendaristica(const std::string& data) {
+    // Implementare pentru inițializarea din șir de caractere
+}
+
+DataCalendaristica::DataCalendaristica(int numarZi, int anCurent) : an(anCurent) {
+    // Implementare pentru inițializarea din numărul zilei
+}
+
+bool DataCalendaristica::esteAnBisect(int an) const {
+    return (an % 4 == 0 && an % 100 != 0) || (an % 400 == 0);
+}
+
+int DataCalendaristica::zileInLuna(int luna, int an) const {
+    static const int zileLuni[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if (luna == 2 && esteAnBisect(an)) return 29;
+    return zileLuni[luna - 1];
+}
+
+bool DataCalendaristica::esteValida() const {
+    if (luna < 1 || luna > 12) return false;
+    if (zi < 1 || zi > zileInLuna(luna, an)) return false;
+    return true;
+}
+
+void DataCalendaristica::setZi(int ziNoua) {
+    zi = ziNoua;
+    if (!esteValida()) throw std::invalid_argument("Zi invalidă");
+}
+
+void DataCalendaristica::setLuna(int lunaNoua) {
+    luna = lunaNoua;
+    if (!esteValida()) throw std::invalid_argument("Lună invalidă");
+}
+
+void DataCalendaristica::setAn(int anNou) {
+    an = anNou;
+}
+
+int DataCalendaristica::getZi() const { return zi; }
+int DataCalendaristica::getLuna() const { return luna; }
+int DataCalendaristica::getAn() const { return an; }
+
+void DataCalendaristica::afiseazaData() const {
+    std::cout << zi << "/" << luna << "/" << an << std::endl;
+}
+
+int DataCalendaristica::numarZiInAn() const {
+    int numarZile = 0;
+    for (int i = 1; i < luna; ++i) {
+        numarZile += zileInLuna(i, an);
+    }
+    numarZile += zi;
+    return numarZile;
+}
+
+
+
+
+
+// Agenda.h
+#ifndef AGENDA_H
+#define AGENDA_H
+
+#include <vector>
+#include "DataCalendaristica.h"
+
+class Agenda {
+private:
+    std::vector<DataCalendaristica> date;
+
+public:
+    void adaugaData(const DataCalendaristica& data);
+    void afiseazaAgenda() const;
+    void modificaData(int index, const DataCalendaristica& dataNoua);
+};
+
+#endif // AGENDA_H
+
+
+
+// Agenda.cpp
+#include "Agenda.h"
+#include <iostream>
+#include <stdexcept>
+
+void Agenda::adaugaData(const DataCalendaristica& data) {
+    date.push_back(data);
+}
+
+void Agenda::afiseazaAgenda() const {
+    for (const auto& data : date) {
+        data.afiseazaData();
+    }
+}
+
+void Agenda::modificaData(int index, const DataCalendaristica& dataNoua) {
+    if (index < 0 || index >= date.size()) throw std::out_of_range("Index invalid");
+    date[index] = dataNoua;
+}
+
+
+
+
+// main.cpp
+#include <iostream>
+#include "Agenda.h"
+#include "DataCalendaristica.h"
+
+int main() {
+    Agenda agenda;
+
+    DataCalendaristica data1("1/februarie/2022");
+    DataCalendaristica data2(60, 2022); // Ex: ziua 60 din 2022
+
+    agenda.adaugaData(data1);
+    agenda.adaugaData(data2);
+
+    std::cout << "Agenda săptămânală:" << std::endl;
+    agenda.afiseazaAgenda();
+
+    return 0;
+}
