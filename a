@@ -1,169 +1,340 @@
-// DataCalendaristica.h
-#ifndef DATA_CALENDARISTICA_H
-#define DATA_CALENDARISTICA_H
+#ifndef CALENDARDATE_H
+#define CALENDARDATE_H
 
 #include <string>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
-class DataCalendaristica {
+class CalendarDate {
 private:
-    int zi;
-    int luna;
-    int an;
+    int day;
+    int month;
+    int year;
 
-    bool esteAnBisect(int an) const;
-    int zileInLuna(int luna, int an) const;
+    static const std::vector<int> daysInMonth;
+
+    bool isLeapYear(int year) const;
+    int getDayOfYear() const;
 
 public:
-    DataCalendaristica();
-    DataCalendaristica(const std::string& data);
-    DataCalendaristica(int numarZi, int anCurent);
+    CalendarDate(std::string dateStr);
+    CalendarDate(int dayOfYear, int year);
 
-    bool esteValida() const;
-
-    void setZi(int ziNoua);
-    void setLuna(int lunaNoua);
-    void setAn(int anNou);
-
-    int getZi() const;
-    int getLuna() const;
-    int getAn() const;
-
-    void afiseazaData() const;
-    int numarZiInAn() const;
+    bool isValid() const;
+    int getDay() const;
+    int getMonth() const;
+    int getYear() const;
+    int getDayOfYear() const;
+    void setDay(int day);
+    void setMonth(int month);
+    void setYear(int year);
+    void displayDate() const;
 };
 
-#endif // DATA_CALENDARISTICA_H
+#endif // CALENDARDATE_H
 
 
+#include "CalendarDate.h"
 
+const std::vector<int> CalendarDate::daysInMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
+CalendarDate::CalendarDate(std::string dateStr) {
+    std::istringstream stream(dateStr);
+    std::string token;
 
-// DataCalendaristica.cpp
-#include "DataCalendaristica.h"
-#include <iostream>
-#include <stdexcept>
+    std::getline(stream, token, '/');
+    day = std::stoi(token);
 
-DataCalendaristica::DataCalendaristica() : zi(1), luna(1), an(2000) {}
+    std::getline(stream, token, '/');
+    month = 0;
+    std::vector<std::string> months = { "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie" };
+    for (int i = 0; i < 12; i++) {
+        if (token == months[i]) {
+            month = i + 1;
+            break;
+        }
+    }
 
-DataCalendaristica::DataCalendaristica(const std::string& data) {
-    // Implementare pentru inițializarea din șir de caractere
+    std::getline(stream, token);
+    year = std::stoi(token);
 }
 
-DataCalendaristica::DataCalendaristica(int numarZi, int anCurent) : an(anCurent) {
-    // Implementare pentru inițializarea din numărul zilei
+CalendarDate::CalendarDate(int dayOfYear, int year) {
+    this->year = year;
+    int monthCounter = 0;
+    int daysRemaining = dayOfYear;
+
+    while (daysRemaining > daysInMonth[monthCounter]) {
+        daysRemaining -= daysInMonth[monthCounter];
+        monthCounter++;
+    }
+
+    month = monthCounter + 1;
+    day = daysRemaining;
 }
 
-bool DataCalendaristica::esteAnBisect(int an) const {
-    return (an % 4 == 0 && an % 100 != 0) || (an % 400 == 0);
+bool CalendarDate::isLeapYear(int year) const {
+    return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 }
 
-int DataCalendaristica::zileInLuna(int luna, int an) const {
-    static const int zileLuni[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    if (luna == 2 && esteAnBisect(an)) return 29;
-    return zileLuni[luna - 1];
+int CalendarDate::getDayOfYear() const {
+    int dayOfYear = day;
+    for (int i = 0; i < month - 1; i++) {
+        dayOfYear += daysInMonth[i];
+    }
+
+    if (month > 2 && isLeapYear(year)) {
+        dayOfYear++;
+    }
+
+    return dayOfYear;
 }
 
-bool DataCalendaristica::esteValida() const {
-    if (luna < 1 || luna > 12) return false;
-    if (zi < 1 || zi > zileInLuna(luna, an)) return false;
+bool CalendarDate::isValid() const {
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > daysInMonth[month - 1]) return false;
+    if (month == 2 && day == 29 && !isLeapYear(year)) return false;
+
     return true;
 }
 
-void DataCalendaristica::setZi(int ziNoua) {
-    zi = ziNoua;
-    if (!esteValida()) throw std::invalid_argument("Zi invalidă");
+int CalendarDate::getDay() const {
+    return day;
 }
 
-void DataCalendaristica::setLuna(int lunaNoua) {
-    luna = lunaNoua;
-    if (!esteValida()) throw std::invalid_argument("Lună invalidă");
+int CalendarDate::getMonth() const {
+    return month;
 }
 
-void DataCalendaristica::setAn(int anNou) {
-    an = anNou;
+int CalendarDate::getYear() const {
+    return year;
 }
 
-int DataCalendaristica::getZi() const { return zi; }
-int DataCalendaristica::getLuna() const { return luna; }
-int DataCalendaristica::getAn() const { return an; }
-
-void DataCalendaristica::afiseazaData() const {
-    std::cout << zi << "/" << luna << "/" << an << std::endl;
+void CalendarDate::setDay(int day) {
+    this->day = day;
 }
 
-int DataCalendaristica::numarZiInAn() const {
-    int numarZile = 0;
-    for (int i = 1; i < luna; ++i) {
-        numarZile += zileInLuna(i, an);
-    }
-    numarZile += zi;
-    return numarZile;
+void CalendarDate::setMonth(int month) {
+    this->month = month;
+}
+
+void CalendarDate::setYear(int year) {
+    this->year = year;
+}
+
+void CalendarDate::displayDate() const {
+    std::cout << day << "/" << month << "/" << year << std::endl;
 }
 
 
 
 
 
-// Agenda.h
-#ifndef AGENDA_H
-#define AGENDA_H
+#ifndef ACTIVITY_H
+#define ACTIVITY_H
 
-#include <vector>
-#include "DataCalendaristica.h"
+#include <string>
 
-class Agenda {
+class Activity {
 private:
-    std::vector<DataCalendaristica> date;
+    std::string description;
 
 public:
-    void adaugaData(const DataCalendaristica& data);
-    void afiseazaAgenda() const;
-    void modificaData(int index, const DataCalendaristica& dataNoua);
+    Activity(std::string description);
+
+    std::string getDescription() const;
 };
 
-#endif // AGENDA_H
+#endif // ACTIVITY_H
 
 
 
-// Agenda.cpp
-#include "Agenda.h"
-#include <iostream>
-#include <stdexcept>
 
-void Agenda::adaugaData(const DataCalendaristica& data) {
-    date.push_back(data);
+#include "Activity.h"
+
+Activity::Activity(std::string description) {
+    this->description = description;
 }
 
-void Agenda::afiseazaAgenda() const {
-    for (const auto& data : date) {
-        data.afiseazaData();
+std::string Activity::getDescription() const {
+    return description;
+}
+
+
+
+
+#ifndef DATEENTRY_H
+#define DATEENTRY_H
+
+#include "CalendarDate.h"
+#include "Activity.h"
+#include <vector>
+
+class DateEntry {
+private:
+    CalendarDate date;
+    std::vector<Activity> activities;
+
+public:
+    DateEntry(CalendarDate date);
+    void addActivity(const Activity& activity);
+    void displayActivities() const;
+    CalendarDate getDate() const;
+};
+
+#endif // DATEENTRY_H
+
+
+
+
+
+#include "DateEntry.h"
+
+DateEntry::DateEntry(CalendarDate date) : date(date) {}
+
+void DateEntry::addActivity(const Activity& activity) {
+    activities.push_back(activity);
+}
+
+void DateEntry::displayActivities() const {
+    std::cout << "Activitățile pentru data " << date.getDay() << "/" << date.getMonth() << "/" << date.getYear() << ":\n";
+    for (const auto& activity : activities) {
+        std::cout << " - " << activity.getDescription() << std::endl;
     }
 }
 
-void Agenda::modificaData(int index, const DataCalendaristica& dataNoua) {
-    if (index < 0 || index >= date.size()) throw std::out_of_range("Index invalid");
-    date[index] = dataNoua;
+CalendarDate DateEntry::getDate() const {
+    return date;
 }
 
 
 
 
-// main.cpp
+
+#ifndef ELECTRONICAGENDA_H
+#define ELECTRONICAGENDA_H
+
+#include "DateEntry.h"
+#include <vector>
+
+class ElectronicAgenda {
+private:
+    std::vector<DateEntry> entries;
+
+public:
+    void addEntry(DateEntry& entry);
+    DateEntry* getEntryForDate(const CalendarDate& date);
+};
+
+#endif // ELECTRONICAGENDA_H
+
+
+
+
+
+#include "ElectronicAgenda.h"
+
+void ElectronicAgenda::addEntry(DateEntry& entry) {
+    entries.push_back(entry);
+}
+
+DateEntry* ElectronicAgenda::getEntryForDate(const CalendarDate& date) {
+    for (auto& entry : entries) {
+        if (entry.getDate().getDay() == date.getDay() && entry.getDate().getMonth() == date.getMonth() && entry.getDate().getYear() == date.getYear()) {
+            return &entry;
+        }
+    }
+    return nullptr;
+}
+
+
+
+
+
+
 #include <iostream>
-#include "Agenda.h"
-#include "DataCalendaristica.h"
+#include "ElectronicAgenda.h"
+#include "CalendarDate.h"
+#include "Activity.h"
+
+void displayMenu() {
+    std::cout << "1. Adaugă activitate la o dată\n";
+    std::cout << "2. Vizualizează activitățile dintr-o zi\n";
+    std::cout << "3. Ieși\n";
+    std::cout << "Alege opțiunea: ";
+}
 
 int main() {
-    Agenda agenda;
+    ElectronicAgenda agenda;
+    int choice;
 
-    DataCalendaristica data1("1/februarie/2022");
-    DataCalendaristica data2(60, 2022); // Ex: ziua 60 din 2022
+    while (true) {
+        displayMenu();
+        std::cin >> choice;
+        std::cin.ignore(); // pentru a ignora eventualele caractere de la finalul inputului
 
-    agenda.adaugaData(data1);
-    agenda.adaugaData(data2);
+        if (choice == 1) {
+            // Adăugarea unei activități
+            std::string dateStr, description;
+            std::cout << "Introduceți data (ex: 12/martie/2024): ";
+            std::getline(std::cin, dateStr);
+            CalendarDate date(dateStr);
 
-    std::cout << "Agenda săptămânală:" << std::endl;
-    agenda.afiseazaAgenda();
+            if (!date.isValid()) {
+                std::cout << "Data nu este validă!\n";
+                continue;
+            }
+
+            DateEntry* entry = agenda.getEntryForDate(date);
+            if (!entry) {
+                entry = new DateEntry(date);
+                agenda.addEntry(*entry);
+            }
+
+            std::cout << "Introduceți descrierea activității: ";
+            std::getline(std::cin, description);
+
+            Activity activity(description);
+            entry->addActivity(activity);
+
+            std::cout << "Activitatea a fost adăugată!\n";
+        }
+        else if (choice == 2) {
+            // Vizualizarea activităților dintr-o zi
+            std::string dateStr;
+            std::cout << "Introduceți data (ex: 12/martie/2024): ";
+            std::getline(std::cin, dateStr);
+            CalendarDate date(dateStr);
+
+            if (!date.isValid()) {
+                std::cout << "Data nu este validă!\n";
+                continue;
+            }
+
+            DateEntry* entry = agenda.getEntryForDate(date);
+            if (entry) {
+                entry->displayActivities();
+            } else {
+                std::cout << "Nu există activități pentru această dată.\n";
+            }
+        }
+        else if (choice == 3) {
+            std::cout << "Ieșire din program.\n";
+            break;
+        }
+        else {
+            std::cout << "Opțiune invalidă! Încercați din nou.\n";
+        }
+    }
 
     return 0;
 }
+
+
+
+
+
+
+
+
